@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/app_navigation">
+
+    <activity
+        android:id="@+id/signup_activity"
+        android:name="com.ridecell.ridecelldemo.ui.signup.SignupActivity"
+        tools:layout="@layout/activity_signup"
+        android:label="@string/signup_activity">
+
+    </activity>
+
+    <activity
+        android:id="@+id/user_info_activity"
+        android:name="com.ridecell.ridecelldemo.ui.userinfo.UserInfoActivity"
+        tools:layout="@layout/activity_user_info"
+        android:label="@string/user_info_activity">
+
+    </activity>
+
+</navigation>

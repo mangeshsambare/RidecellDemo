@@ -1,0 +1,34 @@
+<resources>
+    <string name="app_name">RidecellDemo</string>
+
+
+    <!-- Strings related to login -->
+    <string name="login_activity">LogInActivity</string>
+    <string name="signup_activity">SignupActivity</string>
+    <string name="user_info_activity">UserInfoActivity</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="prompt_full_name">Full Name</string>
+    <string name="action_log_in">Log in</string>
+    <string name="action_log_in_short">Log in</string>
+    <string name="welcome">"Welcome !"</string>
+    <string name="invalid_email_address">Not a valid email address</string>
+    <string name="invalid_password">Password must be >5 characters, one special character, one numeric character</string>
+    <string name="password_not_matched">Password and confirm password not matched</string>
+    <string name="login_failed">"Login failed"</string>
+    <!--Strings related to sign up-->
+    <string name="action_sign_up">Sign Up</string>
+    <string name="signup_failed">"Signup failed"</string>
+
+    <!--Strings related to Log out-->
+    <string name="action_log_out">Logout</string>
+    <string name="logout_failed">"Logout failed"</string>
+
+    <!--strings user info-->
+    <string name="action_map">Map</string>
+    <string name="action_profile">Profile</string>
+    <string name="user_profile_failed">"User profile aata failed"</string>
+
+    <!--google maps-->
+    <string name="google_maps_key">AIzaSyDCZfj5tkWPP85419IeIMaN-6SCPI6UokA</string>
+</resources>
