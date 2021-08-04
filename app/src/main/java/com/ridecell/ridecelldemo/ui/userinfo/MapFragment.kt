@@ -209,6 +209,12 @@ class MapFragment: Fragment(), OnMapReadyCallback, GpsReceiver.GpsCallBack, Loca
         iconFactory.setStyle(IconGenerator.STYLE_GREEN);
         addIcon(iconFactory, "Bangalore", Bangalore)
 
+        map.setOnMarkerClickListener { marker ->
+            val markerLocation = CameraUpdateFactory.newLatLngZoom(marker.position, 10f)
+            map.animateCamera(markerLocation)
+            marker.showInfoWindow()
+            true
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -234,6 +240,7 @@ class MapFragment: Fragment(), OnMapReadyCallback, GpsReceiver.GpsCallBack, Loca
         val markerOptions =
             MarkerOptions().icon(BitmapDescriptorFactory.fromBitmap(iconFactory.makeIcon()))
                 .position(position).anchor(iconFactory.anchorU, iconFactory.anchorV)
+                .title(text)
         map.addMarker(markerOptions)
     }
 
@@ -270,7 +277,7 @@ class MapFragment: Fragment(), OnMapReadyCallback, GpsReceiver.GpsCallBack, Loca
         val longitude = location.longitude
         val latLng = LatLng(latitude, longitude)
         val coordinate = LatLng(latitude, longitude)
-        val userLocation = CameraUpdateFactory.newLatLngZoom(coordinate, 19f)
+        val userLocation = CameraUpdateFactory.newLatLngZoom(coordinate, 10f)
         map.animateCamera(userLocation)
     }
 
