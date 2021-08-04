@@ -67,10 +67,14 @@ android {
         production {
             // you can set configuration for production here
             dimension "default"
+            resValue "string", "user_name_placeholder", ""
+            resValue "string", "password_placeholder", ""
         }
         developer {
             // you can set configuration for developer here
             dimension "default"
+            resValue "string", "user_name_placeholder", "mangesh.sam18@gmail.com"
+            resValue "string", "password_placeholder", "M@ngesh1"
         }
     }
 

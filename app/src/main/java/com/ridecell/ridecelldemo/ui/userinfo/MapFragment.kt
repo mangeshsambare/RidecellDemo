@@ -11,6 +11,7 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Criteria
 import android.location.Location
+import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
@@ -21,10 +22,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.MapsInitializer
-import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
@@ -34,9 +32,10 @@ import com.ridecell.ridecelldemo.databinding.FragmentMapBinding
 import com.ridecell.ridecelldemo.utils.GpsReceiver
 import com.ridecell.ridecelldemo.utils.GpsUtils
 import com.ridecell.ridecelldemo.utils.PermissionUtils
+import kotlinx.coroutines.*
 
 
-class MapFragment: Fragment(), OnMapReadyCallback, GpsReceiver.GpsCallBack {
+class MapFragment: Fragment(), OnMapReadyCallback, GpsReceiver.GpsCallBack, LocationListener {
 
     private lateinit var binding: FragmentMapBinding
     private lateinit var map: GoogleMap
@@ -65,10 +64,11 @@ class MapFragment: Fragment(), OnMapReadyCallback, GpsReceiver.GpsCallBack {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        grantPermission()
-
         val mapView = binding.mapView
         mapView.onCreate(savedInstanceState)
+
+        grantPermission()
+
         mapView.onResume() // needed to get the map to display immediately
 
     }
@@ -105,6 +105,8 @@ class MapFragment: Fragment(), OnMapReadyCallback, GpsReceiver.GpsCallBack {
                     if (!gpsEnable) {
                         GpsUtils(activity).turnGpsOn(this)
                         registerReceiver()
+                    } else {
+                        getUsersCurrentLocation()
                     }
                     MapsInitializer.initialize(activity)
                 }catch (e: Exception){
@@ -161,6 +163,13 @@ class MapFragment: Fragment(), OnMapReadyCallback, GpsReceiver.GpsCallBack {
         }
         map.isMyLocationEnabled = true
         addMarkers()
+        val gpsEnable = PermissionUtils.isGpsEnable(activity)
+        if (!gpsEnable) {
+            GpsUtils(activity).turnGpsOn(this)
+            registerReceiver()
+        } else {
+            getUsersCurrentLocation()
+        }
     }
 
     override fun turnOn() {
@@ -170,7 +179,11 @@ class MapFragment: Fragment(), OnMapReadyCallback, GpsReceiver.GpsCallBack {
     override fun turnOff() {
         Toast.makeText(activity,
             "For your current location, GPS must ON",
-        Toast.LENGTH_SHORT).show()
+            Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onLocationChanged(location: Location) {
+        updateUserLocation(location)
     }
 
     private fun addMarkers(){
@@ -200,18 +213,20 @@ class MapFragment: Fragment(), OnMapReadyCallback, GpsReceiver.GpsCallBack {
 
     @SuppressLint("MissingPermission")
     private fun getUsersCurrentLocation(){
-        val locationManager = activity.getSystemService(LOCATION_SERVICE) as LocationManager?
-        val criteria = Criteria()
-        val provider = locationManager!!.getBestProvider(criteria, true)
-        val location: Location? = locationManager.getLastKnownLocation(provider!!)
+        GlobalScope.launch(Dispatchers.Main){
+            delay(2000)
+            val locationManager = activity.getSystemService(LOCATION_SERVICE) as LocationManager?
+            val criteria = Criteria()
+            val provider = locationManager!!.getBestProvider(criteria, true)
+            val location: Location? = locationManager.getLastKnownLocation(provider!!)
 
-        if (location != null) {
-            val latitude = location.latitude
-            val longitude = location.longitude
-            val latLng = LatLng(latitude, longitude)
-            val coordinate = LatLng(latitude, longitude)
-            val userLocation = CameraUpdateFactory.newLatLngZoom(coordinate, 19f)
-            map.animateCamera(userLocation)
+            if (location != null) {
+               updateUserLocation(location)
+            } else {
+                locationManager.requestLocationUpdates(
+                    LocationManager.PASSIVE_PROVIDER, 0, 200f, this@MapFragment)
+            }
+            cancel()
         }
     }
 
@@ -225,11 +240,8 @@ class MapFragment: Fragment(), OnMapReadyCallback, GpsReceiver.GpsCallBack {
     private fun grantPermission(){
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (PermissionUtils.requestAccessLocation(activity, this)){
-                val gpsEnable = PermissionUtils.isGpsEnable(activity)
-                if (!gpsEnable) {
-                    GpsUtils(activity).turnGpsOn(this)
-                    registerReceiver()
-                }
+                MapsInitializer.initialize(activity)
+                binding.mapView.getMapAsync(this)
             }
         } else {
             // Check permission below sdk M
@@ -252,5 +264,16 @@ class MapFragment: Fragment(), OnMapReadyCallback, GpsReceiver.GpsCallBack {
             gpsReceiver = null
         }
     }
+
+    private fun updateUserLocation(location: Location){
+        val latitude = location.latitude
+        val longitude = location.longitude
+        val latLng = LatLng(latitude, longitude)
+        val coordinate = LatLng(latitude, longitude)
+        val userLocation = CameraUpdateFactory.newLatLngZoom(coordinate, 19f)
+        map.animateCamera(userLocation)
+    }
+
+
 
 }

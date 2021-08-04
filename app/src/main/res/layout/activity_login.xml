@@ -29,6 +29,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/prompt_email"
+            android:text="@string/user_name_placeholder"
             android:inputType="textEmailAddress"
             android:selectAllOnFocus="true" />
 
@@ -52,6 +53,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/prompt_password"
+            android:text="@string/password_placeholder"
             android:imeActionLabel="@string/action_log_in_short"
             android:imeOptions="actionDone"
             android:inputType="textPassword"
