@@ -11,12 +11,34 @@ plugins {
 
 }
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     compileSdkVersion 30
     buildToolsVersion "30.0.0"
 
+    signingConfigs {
+        file(rootProject.file('key.properties')).with { propFile ->
+            if (propFile.canRead()){
+                release {
+                    storeFile file(keystoreProperties['storeFile'])
+                    storePassword keystoreProperties['storePassword']
+                    keyAlias keystoreProperties['keyAlias']
+                    keyPassword keystoreProperties['keyPassword']
+                }
+            } else {
+                print('not signed')
+            }
+        }
+    }
+
     defaultConfig {
         applicationId "com.ridecell.ridecelldemo"
+        flavorDimensions "default"
         minSdkVersion 19
         targetSdkVersion 30
         versionCode 1
@@ -41,12 +63,58 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+    productFlavors {
+        production {
+            // you can set configuration for production here
+            dimension "default"
+        }
+        developer {
+            // you can set configuration for developer here
+            dimension "default"
         }
     }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+            // Enables code shrinking, obfuscation, and optimization for only
+            // your project's release build type.
+            minifyEnabled false
+
+            // Enables resource shrinking, which is performed by the
+            // Android Gradle plugin.
+            shrinkResources false
+
+            proguardFiles getDefaultProguardFile(
+                    'proguard-android-optimize.txt'),
+                    'proguard-rules.pro'
+        }
+        release {
+            // Enables code shrinking, obfuscation, and optimization for only
+            // your project's release build type.
+            minifyEnabled true
+
+            // Enables resource shrinking, which is performed by the
+            // Android Gradle plugin.
+            shrinkResources true
+            // Includes the default ProGuard rules files that are packaged with
+            // the Android Gradle plugin. To learn more, go to the section about
+            // R8 configuration files.
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+            file(rootProject.file('key.properties')).with { propFile ->
+                if (propFile.canRead()) {
+                    // because we can read the keystore
+                    // we are building locally
+                    // so sign locally
+                    // otherwise build an unsigned apk for later signing by the CI/CD provider
+                    signingConfig signingConfigs.release
+                }
+            }
+        }
+    }
+
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
