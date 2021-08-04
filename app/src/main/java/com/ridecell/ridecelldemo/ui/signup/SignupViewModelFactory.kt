@@ -2,7 +2,9 @@ package com.ridecell.ridecelldemo.ui.signup
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.ridecell.ridecelldemo.data.PasswordRequirementDataSource
 import com.ridecell.ridecelldemo.data.SignupDataSource
+import com.ridecell.ridecelldemo.data.repository.PasswordRequirementRepository
 import com.ridecell.ridecelldemo.data.repository.SignupRepository
 
 /**
@@ -16,7 +18,9 @@ class SignupViewModelFactory : ViewModelProvider.Factory {
         if (modelClass.isAssignableFrom(SignupViewModel::class.java)) {
             return SignupViewModel(
                 signupRepository = SignupRepository(
-                    dataSource = SignupDataSource()
+                    dataSource = SignupDataSource()),
+                passwordRequirementRepository = PasswordRequirementRepository(
+                    dataSource = PasswordRequirementDataSource()
                 )
             ) as T
         }

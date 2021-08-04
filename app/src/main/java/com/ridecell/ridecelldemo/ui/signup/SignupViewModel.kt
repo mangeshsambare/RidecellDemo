@@ -5,21 +5,27 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.ridecell.ridecelldemo.R
-import com.ridecell.ridecelldemo.data.repository.SignupRepository
 import com.ridecell.ridecelldemo.data.model.AuthenticationDto
+import com.ridecell.ridecelldemo.data.repository.PasswordRequirementRepository
+import com.ridecell.ridecelldemo.data.repository.SignupRepository
 import com.ridecell.ridecelldemo.network.ApiCallback
 import com.ridecell.ridecelldemo.network.NetworkError
+import com.ridecell.ridecelldemo.ui.login.PasswordRequirementResult
 import io.reactivex.rxjava3.disposables.Disposable
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
-class SignupViewModel(private val signupRepository: SignupRepository): ViewModel() {
+class SignupViewModel(private val signupRepository: SignupRepository,
+                      private val passwordRequirementRepository: PasswordRequirementRepository): ViewModel() {
 
     private val _signupForm = MutableLiveData<SignupFormState>()
     val signupFormState: LiveData<SignupFormState> = _signupForm
 
     private val _signupResult = MutableLiveData<SignupResult>()
     val signupResult: LiveData<SignupResult> = _signupResult
+
+    private val _passwordRequirementResult = MutableLiveData<PasswordRequirementResult>()
+    val passwordRequirementResult: LiveData<PasswordRequirementResult> = _passwordRequirementResult
 
     fun signup(emailAddress: String, fullName: String, password: String) {
         // can be launched in a separate asynchronous job
@@ -60,6 +66,12 @@ class SignupViewModel(private val signupRepository: SignupRepository): ViewModel
         else {
             _signupForm.value = SignupFormState(isDataValid = true)
         }
+    }
+
+    /*get password requirement data*/
+    fun getPasswordRequirements(){
+        val passwordRequirementsDto = passwordRequirementRepository.getPasswordRequirements()
+        _passwordRequirementResult.value = PasswordRequirementResult(passwordRequirementsDto)
     }
 
     // A placeholder email address validation check

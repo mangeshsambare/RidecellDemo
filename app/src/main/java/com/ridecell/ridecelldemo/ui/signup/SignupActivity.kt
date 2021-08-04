@@ -51,7 +51,11 @@ class SignupActivity: AppCompatActivity() {
                 emailAddress.error = getString(signupState.fullNameError)
             }
             if (signupState.passwordError != null) {
-                password.error = getString(signupState.passwordError)
+                if (signupState.passwordError == R.string.password_not_matched){
+                    confirmPassword.setError(getString(signupState.passwordError), null)
+                } else {
+                    password.setError(getString(signupState.passwordError), null)
+                }
             }
         })
 

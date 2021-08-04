@@ -3,7 +3,9 @@ package com.ridecell.ridecelldemo.ui.login
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.ridecell.ridecelldemo.data.LoginDataSource
+import com.ridecell.ridecelldemo.data.PasswordRequirementDataSource
 import com.ridecell.ridecelldemo.data.repository.LoginRepository
+import com.ridecell.ridecelldemo.data.repository.PasswordRequirementRepository
 
 /**
  * ViewModel provider factory to instantiate LoginViewModel.
@@ -16,7 +18,9 @@ class LoginViewModelFactory : ViewModelProvider.Factory {
         if (modelClass.isAssignableFrom(LoginViewModel::class.java)) {
             return LoginViewModel(
                 loginRepository = LoginRepository(
-                    dataSource = LoginDataSource()
+                    dataSource = LoginDataSource()),
+                passwordRequirementRepository = PasswordRequirementRepository(
+                    dataSource = PasswordRequirementDataSource()
                 )
             ) as T
         }

@@ -64,7 +64,7 @@ class LoginActivity : AppCompatActivity() {
                 emailAddress.error = getString(loginState.emailAddressError)
             }
             if (loginState.passwordError != null) {
-                password.error = getString(loginState.passwordError)
+                password.setError(getString(loginState.passwordError), null)
             }
         })
 

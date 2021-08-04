@@ -5,8 +5,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.ridecell.ridecelldemo.R
-import com.ridecell.ridecelldemo.data.repository.LoginRepository
 import com.ridecell.ridecelldemo.data.model.AuthenticationDto
+import com.ridecell.ridecelldemo.data.repository.LoginRepository
+import com.ridecell.ridecelldemo.data.repository.PasswordRequirementRepository
 import com.ridecell.ridecelldemo.network.ApiCallback
 import com.ridecell.ridecelldemo.network.NetworkError
 import io.reactivex.rxjava3.disposables.Disposable
@@ -14,13 +15,17 @@ import java.util.regex.Matcher
 import java.util.regex.Pattern
 
 
-class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel() {
+class LoginViewModel(private val loginRepository: LoginRepository,
+private val passwordRequirementRepository: PasswordRequirementRepository) : ViewModel() {
 
     private val _loginForm = MutableLiveData<LoginFormState>()
     val loginFormState: LiveData<LoginFormState> = _loginForm
 
     private val _loginResult = MutableLiveData<LoginResult>()
     val loginResult: LiveData<LoginResult> = _loginResult
+
+    private val _passwordRequirementResult = MutableLiveData<PasswordRequirementResult>()
+    val passwordRequirementResult: LiveData<PasswordRequirementResult> = _passwordRequirementResult
 
     fun login(emailAddress: String, password: String) {
         // can be launched in a separate asynchronous job
@@ -54,6 +59,12 @@ class LoginViewModel(private val loginRepository: LoginRepository) : ViewModel()
         } else {
             _loginForm.value = LoginFormState(isDataValid = true)
         }
+    }
+
+    /*get password requirement data*/
+    fun getPasswordRequirements(){
+        val passwordRequirementsDto = passwordRequirementRepository.getPasswordRequirements()
+        _passwordRequirementResult.value = PasswordRequirementResult(passwordRequirementsDto)
     }
 
     // A placeholder email address validation check
