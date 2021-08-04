@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 object PermissionUtils {
 
     const val REQUEST_ACCESS_LOCATION = 1
+    const val REQUEST_ENABLE_GPS = 2
 
     // request access fine location & coarse location
     @RequiresApi(Build.VERSION_CODES.M)

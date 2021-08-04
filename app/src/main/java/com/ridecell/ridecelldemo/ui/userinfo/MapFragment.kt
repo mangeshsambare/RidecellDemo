@@ -2,8 +2,11 @@ package com.ridecell.ridecelldemo.ui.userinfo
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.content.Context.LOCATION_SERVICE
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Criteria
@@ -28,14 +31,18 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.maps.android.ui.IconGenerator
 import com.ridecell.ridecelldemo.data.model.AuthenticationDto
 import com.ridecell.ridecelldemo.databinding.FragmentMapBinding
+import com.ridecell.ridecelldemo.utils.GpsReceiver
+import com.ridecell.ridecelldemo.utils.GpsUtils
 import com.ridecell.ridecelldemo.utils.PermissionUtils
 
 
-class MapFragment: Fragment(), OnMapReadyCallback {
+class MapFragment: Fragment(), OnMapReadyCallback, GpsReceiver.GpsCallBack {
 
     private lateinit var binding: FragmentMapBinding
     private lateinit var map: GoogleMap
     private lateinit var activity: AppCompatActivity
+
+    private var gpsReceiver: GpsReceiver? = null
 
     private lateinit var authenticationDto: AuthenticationDto
 
@@ -45,14 +52,6 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         if (requireArguments() != null) {
             authenticationDto = requireArguments().getParcelable("authentication")!!
         }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-//        val mapFragment = supportFragmentManager
-//            .findFragmentById(R.id.map) as SupportMapFragment
-//        mapFragment.getMapAsync(this)
     }
 
     override fun onCreateView(
@@ -66,14 +65,7 @@ class MapFragment: Fragment(), OnMapReadyCallback {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (PermissionUtils.requestAccessLocation(activity, this)){
-                PermissionUtils.isGpsEnable(activity)
-            }
-        } else {
-            // Check permission below sdk M
-            TODO("VERSION.SDK_INT < M")
-        }
+        grantPermission()
 
         val mapView = binding.mapView
         mapView.onCreate(savedInstanceState)
@@ -91,6 +83,11 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         binding.mapView.onPause()
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        unregisterReceiver()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         binding.mapView.onDestroy()
@@ -104,7 +101,11 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         when (requestCode) {
             PermissionUtils.REQUEST_ACCESS_LOCATION -> if (grantResults.size > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 try {
-                    PermissionUtils.isGpsEnable(activity)
+                    val gpsEnable = PermissionUtils.isGpsEnable(activity)
+                    if (!gpsEnable) {
+                        GpsUtils(activity).turnGpsOn(this)
+                        registerReceiver()
+                    }
                     MapsInitializer.initialize(activity)
                 }catch (e: Exception){
                     e.printStackTrace()
@@ -113,6 +114,17 @@ class MapFragment: Fragment(), OnMapReadyCallback {
                 binding.mapView.getMapAsync(this)
             } else {
                 Toast.makeText(activity, "Request Permission is not granted", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            PermissionUtils.REQUEST_ENABLE_GPS -> if (resultCode == Activity.RESULT_OK) {
+                grantPermission()
+            } else {
+
             }
         }
     }
@@ -148,8 +160,17 @@ class MapFragment: Fragment(), OnMapReadyCallback {
             return
         }
         map.isMyLocationEnabled = true
-        getUsersCurrentLocation()
         addMarkers()
+    }
+
+    override fun turnOn() {
+        getUsersCurrentLocation()
+    }
+
+    override fun turnOff() {
+        Toast.makeText(activity,
+            "For your current location, GPS must ON",
+        Toast.LENGTH_SHORT).show()
     }
 
     private fun addMarkers(){
@@ -201,5 +222,35 @@ class MapFragment: Fragment(), OnMapReadyCallback {
         map.addMarker(markerOptions)
     }
 
+    private fun grantPermission(){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (PermissionUtils.requestAccessLocation(activity, this)){
+                val gpsEnable = PermissionUtils.isGpsEnable(activity)
+                if (!gpsEnable) {
+                    GpsUtils(activity).turnGpsOn(this)
+                    registerReceiver()
+                }
+            }
+        } else {
+            // Check permission below sdk M
+            TODO("VERSION.SDK_INT < M")
+        }
+    }
+
+    /*register gps enable receiver*/
+    private fun registerReceiver(){
+        gpsReceiver = GpsReceiver(this)
+        val intentFilter = IntentFilter(LocationManager.MODE_CHANGED_ACTION)
+        activity.registerReceiver(gpsReceiver, intentFilter)
+    }
+
+    /*unregister gps enable*/
+    private fun unregisterReceiver(){
+        if (gpsReceiver != null)
+        {
+            activity.unregisterReceiver(gpsReceiver)
+            gpsReceiver = null
+        }
+    }
 
 }
